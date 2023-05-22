@@ -22,7 +22,7 @@ import (
 
 	"github.com/crossplane-contrib/provider-jet-datadog/config/downtime"
 
-	tjconfig "github.com/crossplane/terrajet/pkg/config"
+	tjconfig "github.com/upbound/upjet/pkg/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/crossplane-contrib/provider-jet-datadog/config/dashboard"
@@ -48,8 +48,8 @@ func GetProvider() *tjconfig.Provider {
 		return r
 	}
 
-	pc := tjconfig.NewProviderWithSchema([]byte(providerSchema), resourcePrefix, modulePath,
-		tjconfig.WithDefaultResourceFn(defaultResourceFn),
+	pc := tjconfig.NewProvider([]byte(providerSchema), resourcePrefix, modulePath,
+		tjconfig.WithDefaultResourceOptions(defaultResourceFn),
 		tjconfig.WithIncludeList([]string{
 			"datadog_monitor$",
 			"datadog_monitor_json$",

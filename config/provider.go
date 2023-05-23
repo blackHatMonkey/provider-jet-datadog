@@ -20,15 +20,13 @@ import (
 	// Note(turkenh): we are importing this to embed provider schema document
 	_ "embed"
 
-	"github.com/crossplane-contrib/provider-jet-datadog/config/downtime"
-
-	tjconfig "github.com/upbound/upjet/pkg/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/crossplane-contrib/provider-jet-datadog/config/dashboard"
-	"github.com/crossplane-contrib/provider-jet-datadog/config/monitor"
-	"github.com/crossplane-contrib/provider-jet-datadog/config/role"
-	"github.com/crossplane-contrib/provider-jet-datadog/config/synthetics"
+	ujconfig "github.com/upbound/upjet/pkg/config"
+	
+	// "github.com/crossplane-contrib/provider-jet-datadog/config/downtime"
+	// "github.com/crossplane-contrib/provider-jet-datadog/config/dashboard"
+	// "github.com/crossplane-contrib/provider-jet-datadog/config/monitor"
+	// "github.com/crossplane-contrib/provider-jet-datadog/config/role"
+	// "github.com/crossplane-contrib/provider-jet-datadog/config/synthetics"
 )
 
 const (
@@ -39,35 +37,24 @@ const (
 //go:embed schema.json
 var providerSchema string
 
-// GetProvider returns provider configuration
-func GetProvider() *tjconfig.Provider {
-	defaultResourceFn := func(name string, terraformResource *schema.Resource, opts ...tjconfig.ResourceOption) *tjconfig.Resource {
-		r := tjconfig.DefaultResource(name, terraformResource)
-		// Add any provider-specific defaulting here. For example:
-		//   r.ExternalName = tjconfig.IdentifierFromProvider
-		return r
-	}
+//go:embed provider-metadata.yaml
+var providerMetadata string
 
-	pc := tjconfig.NewProvider([]byte(providerSchema), resourcePrefix, modulePath,
-		tjconfig.WithDefaultResourceOptions(defaultResourceFn),
-		tjconfig.WithIncludeList([]string{
-			"datadog_monitor$",
-			"datadog_monitor_json$",
-			"datadog_downtime$",
-			"datadog_service_level_objective$",
-			"datadog_synthetics_test$",
-			"datadog_role$",
-			"datadog_dashboard$",
-			"datadog_dashboard_json$",
-		}))
+// GetProvider returns ujconfig configuration
+func GetProvider() *ujconfig.Provider {
+	pc := ujconfig.NewProvider([]byte(providerSchema), resourcePrefix, modulePath, []byte(providerMetadata),
+		ujconfig.WithIncludeList(ExternalNameConfigured()),
+		ujconfig.WithDefaultResourceOptions(
+			ExternalNameConfigurations(),
+		))
 
-	for _, configure := range []func(provider *tjconfig.Provider){
+	for _, configure := range []func(provider *ujconfig.Provider){
 		// add custom config functions
-		monitor.Configure,
-		synthetics.Configure,
-		downtime.Configure,
-		role.Configure,
-		dashboard.Configure,
+		// monitor.Configure,
+		// synthetics.Configure,
+		// downtime.Configure,
+		// role.Configure,
+		// dashboard.Configure,
 	} {
 		configure(pc)
 	}

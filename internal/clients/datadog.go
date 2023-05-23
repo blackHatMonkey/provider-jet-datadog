@@ -1,17 +1,5 @@
 /*
-Copyright 2021 The Crossplane Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Copyright 2021 Upbound Inc.
 */
 
 package clients
@@ -36,7 +24,7 @@ const (
 	errGetProviderConfig    = "cannot get referenced ProviderConfig"
 	errTrackUsage           = "cannot track ProviderConfig usage"
 	errExtractCredentials   = "cannot extract credentials"
-	errUnmarshalCredentials = "cannot unmarshal datadog credentials as JSON"
+	errUnmarshalCredentials = "cannot unmarshal jet-datadog credentials as JSON"
 )
 
 // TerraformSetupBuilder builds Terraform a terraform.SetupFn function which
@@ -55,12 +43,12 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 		if configRef == nil {
 			return ps, errors.New(errNoProviderConfig)
 		}
-		pc := &v1alpha1.ProviderConfig{}
+		pc := &v1beta1.ProviderConfig{}
 		if err := client.Get(ctx, types.NamespacedName{Name: configRef.Name}, pc); err != nil {
 			return ps, errors.Wrap(err, errGetProviderConfig)
 		}
 
-		t := resource.NewProviderConfigUsageTracker(client, &v1alpha1.ProviderConfigUsage{})
+		t := resource.NewProviderConfigUsageTracker(client, &v1beta1.ProviderConfigUsage{})
 		if err := t.Track(ctx, mg); err != nil {
 			return ps, errors.Wrap(err, errTrackUsage)
 		}
@@ -69,25 +57,16 @@ func TerraformSetupBuilder(version, providerSource, providerVersion string) terr
 		if err != nil {
 			return ps, errors.Wrap(err, errExtractCredentials)
 		}
-		datadogCreds := map[string]string{}
-		if err := json.Unmarshal(data, &datadogCreds); err != nil {
+		creds := map[string]string{}
+		if err := json.Unmarshal(data, &creds); err != nil {
 			return ps, errors.Wrap(err, errUnmarshalCredentials)
 		}
 
-		// set environment variables for sensitive provider configuration
-		// Deprecated: In shared gRPC mode we do not support injecting
-		// credentials via the environment variables. You should specify
-		// credentials via the Terraform main.tf.json instead.
-		/*ps.Env = []string{
-			fmt.Sprintf("%s=%s", "HASHICUPS_USERNAME", datadogCreds["username"]),
-			fmt.Sprintf("%s=%s", "HASHICUPS_PASSWORD", datadogCreds["password"]),
+		// Set credentials in Terraform provider configuration.
+		/*ps.Configuration = map[string]any{
+			"username": creds["username"],
+			"password": creds["password"],
 		}*/
-		// set credentials in Terraform provider configuration
-		ps.Configuration = map[string]interface{}{
-			"api_key": datadogCreds["api_key"],
-			"app_key": datadogCreds["app_key"],
-			"api_url": datadogCreds["api_url"],
-		}
 		return ps, nil
 	}
 }

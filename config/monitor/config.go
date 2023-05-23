@@ -17,22 +17,22 @@ limitations under the License.
 package monitor
 
 import (
-	tjconfig "github.com/upbound/upjet/pkg/config"
+	ujconfig "github.com/upbound/upjet/pkg/config"
 )
 
 // Configure configures the monitor group
-func Configure(p *tjconfig.Provider) {
-	p.AddResourceConfigurator("datadog_monitor", func(r *tjconfig.Resource) {
-		r.ExternalName = tjconfig.IdentifierFromProvider
+func Configure(p *ujconfig.Provider) {
+	p.AddResourceConfigurator("datadog_monitor", func(r *ujconfig.Resource) {
+		r.ExternalName = ujconfig.IdentifierFromProvider
 		r.ShortGroup = "monitor"
 	})
 
-	p.AddResourceConfigurator("datadog_monitor_json", func(r *tjconfig.Resource) {
-		r.ExternalName = tjconfig.IdentifierFromProvider
+	p.AddResourceConfigurator("datadog_monitor_json", func(r *ujconfig.Resource) {
+		r.ExternalName = ujconfig.IdentifierFromProvider
 	})
 
-	p.AddResourceConfigurator("datadog_service_level_objective", func(r *tjconfig.Resource) {
-		r.ExternalName = tjconfig.IdentifierFromProvider
+	p.AddResourceConfigurator("datadog_service_level_objective", func(r *ujconfig.Resource) {
+		r.ExternalName = ujconfig.IdentifierFromProvider
 		r.Kind = "ServiceLevelObjective"
 		r.ShortGroup = "monitor"
 		// NOTE(ytsarev): cross reference will fail here until
